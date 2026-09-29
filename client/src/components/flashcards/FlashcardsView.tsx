@@ -209,13 +209,24 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
         <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
           <Layers className="w-10 h-10 mx-auto text-slate-300 dark:text-slate-600" />
           <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">
-            No cards found in this view
+            {flashcards.length === 0 ? 'No flashcards yet' : 'No cards found in this view'}
           </h3>
           <p className="text-xs text-slate-400 max-w-sm mx-auto">
-            {filter === 'due'
+            {filter === 'due' && flashcards.length > 0
               ? 'Great job! You have no cards due for review right now.'
-              : 'Add custom notes or click "Generate with AI" to build your deck.'}
+              : 'Add custom notes or generate with AI to build your spaced repetition deck.'}
           </p>
+          {flashcards.length === 0 && (
+            <div className="pt-2">
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Create Flashcards</span>
+              </button>
+            </div>
+          )}
         </div>
       ) : activeCard ? (
         <div className="space-y-6">

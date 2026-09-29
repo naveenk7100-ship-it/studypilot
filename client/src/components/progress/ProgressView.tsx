@@ -95,6 +95,14 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
         </p>
       </div>
 
+      {/* Onboarding Notice for Fresh Session */}
+      {totalStudyMinutes === 0 && attempted === 0 && reviewedFlashcardsCount === 0 && (
+        <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-900/60 text-blue-700 dark:text-blue-300 text-xs sm:text-sm flex items-center gap-3">
+          <BookOpen className="w-5 h-5 shrink-0 text-blue-500" />
+          <span>Your learning data will appear here after your first study session.</span>
+        </div>
+      )}
+
       {/* 1. Core Metrics Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs space-y-2">

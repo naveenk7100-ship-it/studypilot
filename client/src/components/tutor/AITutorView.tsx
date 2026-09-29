@@ -495,32 +495,42 @@ export const AITutorView: React.FC<AITutorViewProps> = ({
               </div>
               <div>
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                  StudyPilot AI Tutor
+                  Ask me anything you're studying
                 </h3>
                 <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                  Ask any question, request a step-by-step 8-part explanation, generate quizzes, or ask about your uploaded material.
+                  Ask any question, request a step-by-step breakdown, generate quizzes, or ask about your uploaded material.
                 </p>
               </div>
 
               {/* Sample Prompts */}
               <div className="w-full space-y-2 pt-2">
                 <button
-                  onClick={() => handleSendMessage('Explain TCP congestion control step by step.', 'explain')}
-                  className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 hover:border-blue-400 hover:bg-blue-50/30 text-left text-xs sm:text-sm text-slate-700 dark:text-slate-300 transition-all"
+                  onClick={() => handleSendMessage('Explain TCP congestion control', 'explain')}
+                  className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 hover:border-blue-400 hover:bg-blue-50/30 text-left text-xs sm:text-sm text-slate-700 dark:text-slate-300 transition-all flex items-center justify-between group"
                 >
-                  💡 <strong>Explain TCP congestion control</strong> with analogies & math
+                  <span className="font-medium">💡 Explain TCP congestion control</span>
+                  <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-blue-500 group-hover:translate-x-0.5 transition-all" />
                 </button>
                 <button
-                  onClick={() => handleSendMessage('Summarize the primary differences between OSI and TCP/IP models.', 'summarize')}
-                  className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 hover:border-blue-400 hover:bg-blue-50/30 text-left text-xs sm:text-sm text-slate-700 dark:text-slate-300 transition-all"
+                  onClick={() => handleSendMessage('Help me understand recursion', 'explain')}
+                  className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 hover:border-blue-400 hover:bg-blue-50/30 text-left text-xs sm:text-sm text-slate-700 dark:text-slate-300 transition-all flex items-center justify-between group"
                 >
-                  📑 <strong>Summarize:</strong> OSI vs TCP/IP Models
+                  <span className="font-medium">🔄 Help me understand recursion</span>
+                  <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-blue-500 group-hover:translate-x-0.5 transition-all" />
                 </button>
                 <button
-                  onClick={() => handleSendMessage('Generate a 5-question practice quiz on Transport Layer protocols.', 'quiz')}
-                  className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 hover:border-blue-400 hover:bg-blue-50/30 text-left text-xs sm:text-sm text-slate-700 dark:text-slate-300 transition-all"
+                  onClick={() => handleSendMessage('Teach me photosynthesis', 'explain')}
+                  className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 hover:border-blue-400 hover:bg-blue-50/30 text-left text-xs sm:text-sm text-slate-700 dark:text-slate-300 transition-all flex items-center justify-between group"
                 >
-                  🎯 <strong>Practice Quiz:</strong> Transport Layer Protocols
+                  <span className="font-medium">🌱 Teach me photosynthesis</span>
+                  <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-blue-500 group-hover:translate-x-0.5 transition-all" />
+                </button>
+                <button
+                  onClick={() => handleSendMessage('Explain normalization in DBMS', 'explain')}
+                  className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 hover:border-blue-400 hover:bg-blue-50/30 text-left text-xs sm:text-sm text-slate-700 dark:text-slate-300 transition-all flex items-center justify-between group"
+                >
+                  <span className="font-medium">🗄️ Explain normalization in DBMS</span>
+                  <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-blue-500 group-hover:translate-x-0.5 transition-all" />
                 </button>
               </div>
             </div>

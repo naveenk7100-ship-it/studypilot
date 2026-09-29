@@ -145,7 +145,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               disabled={!studyInput.trim()}
               className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:hover:bg-blue-600 text-white font-semibold text-sm transition-all shadow-xs cursor-pointer shrink-0"
             >
-              <span>Explain</span>
+              <span>Explain a topic</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>

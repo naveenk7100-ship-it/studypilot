@@ -395,17 +395,20 @@ export const ExamPrepView: React.FC<ExamPrepViewProps> = ({
         <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
           <CalendarDays className="w-10 h-10 mx-auto text-slate-300 dark:text-slate-600" />
           <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">
-            No Exam Plans Created Yet
+            No exam plan yet
           </h3>
           <p className="text-xs text-slate-400 max-w-sm mx-auto">
             Build your personalized study roadmap with milestones and practice tests.
           </p>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold"
-          >
-            Create Your First Exam Plan
-          </button>
+          <div className="pt-1">
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+            >
+              <CalendarDays className="w-3.5 h-3.5" />
+              <span>Build Exam Roadmap</span>
+            </button>
+          </div>
         </div>
       )}
 

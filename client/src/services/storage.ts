@@ -21,52 +21,98 @@ const STORAGE_KEYS = {
 };
 
 const STORAGE_VERSION_KEY = 'studypilot_schema_version';
-const CURRENT_SCHEMA_VERSION = 'v2_zero_state';
+const CURRENT_SCHEMA_VERSION = 'v3_production_release';
 
 /**
- * Self-healing zero-state migration.
- * Automatically runs immediately on module load in the browser.
- * Purges legacy contaminated mock/seeded data (e.g. 3.8 hrs, 21/29 questions, Routing Protocols)
- * to guarantee that any new or returning browser arrives at an authentic 0 state.
+ * Robust zero-state & schema version migration.
+ * Runs immediately on module load in the browser.
+ * - Detects and purges legacy fabricated demo data (e.g. 3.8 hrs, 21/29 questions, Routing Protocols).
+ * - Preserves authentic student-created data when present.
+ * - Guarantees that fresh browsers and returning users always start at an authentic zero state.
  */
-function purgeLegacySeededData() {
+function migrateAndPurgeLegacyData() {
   if (typeof window === 'undefined' || !window.localStorage) return;
   try {
     const version = localStorage.getItem(STORAGE_VERSION_KEY);
-    const existingState = localStorage.getItem(STORAGE_KEYS.LEARNING_STATE);
-    const existingFlashcards = localStorage.getItem(STORAGE_KEYS.FLASHCARDS);
-    const existingQuizResults = localStorage.getItem(STORAGE_KEYS.QUIZ_RESULTS);
-    const existingPlans = localStorage.getItem(STORAGE_KEYS.EXAM_PLANS);
+    const existingStateRaw = localStorage.getItem(STORAGE_KEYS.LEARNING_STATE);
+    const existingFlashcardsRaw = localStorage.getItem(STORAGE_KEYS.FLASHCARDS);
+    const existingQuizResultsRaw = localStorage.getItem(STORAGE_KEYS.QUIZ_RESULTS);
+    const existingPlansRaw = localStorage.getItem(STORAGE_KEYS.EXAM_PLANS);
 
-    const hasLegacyMarkers = Boolean(
-      (existingState && (
-        existingState.includes('Routing Protocols') ||
-        existingState.includes('215') ||
-        existingState.includes('228') ||
-        existingState.includes('TCP Congestion')
+    const legacyDemoIds = ['fc-1', 'fc-2', 'fc-3', 'res-demo-1', 'plan-demo-1', 'conv-demo-1'];
+    const isContaminated = (
+      (existingStateRaw && (
+        existingStateRaw.includes('Routing Protocols') ||
+        existingStateRaw.includes('215') ||
+        existingStateRaw.includes('228') ||
+        existingStateRaw.includes('TCP Congestion')
       )) ||
-      (existingFlashcards && (existingFlashcards.includes('fc-1') || existingFlashcards.includes('fc-2') || existingFlashcards.includes('fc-3'))) ||
-      (existingQuizResults && existingQuizResults.includes('res-demo-1')) ||
-      (existingPlans && existingPlans.includes('plan-demo-1'))
+      (existingFlashcardsRaw && (existingFlashcardsRaw.includes('fc-1') || existingFlashcardsRaw.includes('fc-2') || existingFlashcardsRaw.includes('fc-3'))) ||
+      (existingQuizResultsRaw && existingQuizResultsRaw.includes('res-demo-1')) ||
+      (existingPlansRaw && existingPlansRaw.includes('plan-demo-1'))
     );
 
-    if (version !== CURRENT_SCHEMA_VERSION || hasLegacyMarkers) {
-      localStorage.removeItem(STORAGE_KEYS.CONVERSATIONS);
-      localStorage.removeItem(STORAGE_KEYS.CURRENT_CONV_ID);
-      localStorage.removeItem(STORAGE_KEYS.DOCUMENTS);
-      localStorage.removeItem(STORAGE_KEYS.FLASHCARDS);
-      localStorage.removeItem(STORAGE_KEYS.QUIZ_RESULTS);
-      localStorage.removeItem(STORAGE_KEYS.EXAM_PLANS);
-      localStorage.removeItem(STORAGE_KEYS.LEARNING_STATE);
-      localStorage.removeItem(STORAGE_KEYS.SAVED_NOTES);
+    if (version !== CURRENT_SCHEMA_VERSION || isContaminated) {
+      // 1. Cleanse Flashcards: remove only legacy demo cards
+      if (existingFlashcardsRaw) {
+        try {
+          const cards: Flashcard[] = JSON.parse(existingFlashcardsRaw);
+          const realCards = cards.filter(c => !legacyDemoIds.includes(c.id));
+          if (realCards.length > 0) {
+            localStorage.setItem(STORAGE_KEYS.FLASHCARDS, JSON.stringify(realCards));
+          } else {
+            localStorage.removeItem(STORAGE_KEYS.FLASHCARDS);
+          }
+        } catch {
+          localStorage.removeItem(STORAGE_KEYS.FLASHCARDS);
+        }
+      }
+
+      // 2. Cleanse Quiz Results: remove legacy demo results
+      if (existingQuizResultsRaw) {
+        try {
+          const results: QuizResult[] = JSON.parse(existingQuizResultsRaw);
+          const realResults = results.filter(r => !legacyDemoIds.includes(r.id));
+          if (realResults.length > 0) {
+            localStorage.setItem(STORAGE_KEYS.QUIZ_RESULTS, JSON.stringify(realResults));
+          } else {
+            localStorage.removeItem(STORAGE_KEYS.QUIZ_RESULTS);
+          }
+        } catch {
+          localStorage.removeItem(STORAGE_KEYS.QUIZ_RESULTS);
+        }
+      }
+
+      // 3. Cleanse Exam Plans: remove legacy demo plans
+      if (existingPlansRaw) {
+        try {
+          const plans: ExamPlan[] = JSON.parse(existingPlansRaw);
+          const realPlans = plans.filter(p => !legacyDemoIds.includes(p.id));
+          if (realPlans.length > 0) {
+            localStorage.setItem(STORAGE_KEYS.EXAM_PLANS, JSON.stringify(realPlans));
+          } else {
+            localStorage.removeItem(STORAGE_KEYS.EXAM_PLANS);
+          }
+        } catch {
+          localStorage.removeItem(STORAGE_KEYS.EXAM_PLANS);
+        }
+      }
+
+      // 4. Cleanse Learning State: if contaminated with fake 3.8 hrs or Routing Protocols, reset
+      if (isContaminated || !version) {
+        localStorage.removeItem(STORAGE_KEYS.LEARNING_STATE);
+        localStorage.removeItem(STORAGE_KEYS.CONVERSATIONS);
+        localStorage.removeItem(STORAGE_KEYS.CURRENT_CONV_ID);
+      }
+
       localStorage.setItem(STORAGE_VERSION_KEY, CURRENT_SCHEMA_VERSION);
     }
   } catch (e) {
-    console.warn('Storage purge warning:', e);
+    console.warn('Storage migration warning:', e);
   }
 }
 
-purgeLegacySeededData();
+migrateAndPurgeLegacyData();
 
 // Clean Zero State Initialization (No fabricated student history)
 const INITIAL_ZERO_STATE: {
@@ -382,7 +428,15 @@ export const StorageService = {
   },
 
   deleteAllStudyData() {
-    Object.values(STORAGE_KEYS).forEach(k => localStorage.removeItem(k));
+    this.resetStudyData();
+  },
+
+  resetStudyData() {
+    Object.values(STORAGE_KEYS).forEach(k => {
+      if (k !== STORAGE_KEYS.THEME) {
+        localStorage.removeItem(k);
+      }
+    });
     localStorage.setItem(STORAGE_VERSION_KEY, CURRENT_SCHEMA_VERSION);
   },
 

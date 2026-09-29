@@ -172,9 +172,25 @@ export const MaterialsView: React.FC<MaterialsViewProps> = ({
       {/* Documents Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {filteredDocs.length === 0 ? (
-          <div className="md:col-span-2 text-center py-12 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 text-slate-400 space-y-2">
-            <FileSpreadsheet className="w-8 h-8 mx-auto text-slate-300 dark:text-slate-600" />
-            <p className="text-sm">No documents found. Upload your first lecture notes or syllabus above!</p>
+          <div className="md:col-span-2 text-center py-16 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
+            <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center mx-auto">
+              <Upload className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">
+                Upload your first study material
+              </h3>
+              <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+                Supported: PDF, DOCX, TXT, MD
+              </p>
+            </div>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+            >
+              <Upload className="w-3.5 h-3.5" />
+              <span>Upload Document</span>
+            </button>
           </div>
         ) : (
           filteredDocs.map((doc) => (
