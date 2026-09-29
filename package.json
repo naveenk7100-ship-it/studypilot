@@ -1,0 +1,41 @@
+{
+  "name": "studypilot",
+  "version": "1.0.0",
+  "description": "StudyPilot - Production-quality AI Study Copilot for Students",
+  "main": "server/index.js",
+  "type": "module",
+  "scripts": {
+    "dev:server": "nodemon server/index.js",
+    "dev:client": "npm run dev --prefix client",
+    "dev": "concurrently -k -n \"SERVER,CLIENT\" -c \"cyan,magenta\" \"npm run dev:server\" \"npm run dev:client\"",
+    "build:client": "npm run build --prefix client",
+    "build": "npm run build:client",
+    "start": "node server/index.js"
+  },
+  "keywords": [
+    "ai-study-copilot",
+    "education",
+    "flashcards",
+    "quiz-engine",
+    "exam-prep",
+    "adaptive-learning"
+  ],
+  "author": "StudyPilot Team",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.4",
+    "express": "^5.2.1",
+    "mammoth": "^1.13.0",
+    "multer": "^2.4.0",
+    "pdf-parse": "^2.4.5"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/multer": "^2.3.0",
+    "@types/pdf-parse": "^1.1.5",
+    "concurrently": "^10.0.5",
+    "nodemon": "^3.1.14"
+  }
+}

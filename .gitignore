@@ -1,0 +1,21 @@
+# Secrets & Environment Variables (CRITICAL: Never commit .env)
+.env
+.env.*
+!.env.example
+
+# Dependencies
+node_modules/
+
+# Production Build Outputs
+dist/
+client/dist/
+
+# File Uploads & Logs
+uploads/
+logs/
+*.log
+
+# System & OS artifacts
+.DS_Store
+Thumbs.db
+coverage/
