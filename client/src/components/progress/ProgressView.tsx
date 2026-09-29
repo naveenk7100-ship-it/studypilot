@@ -77,15 +77,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
     }
   });
 
-  if (recommendations.length === 0) {
-    recommendations.push({
-      type: 'practice',
-      title: 'Practice 5 more questions in Computer Networks',
-      description: 'Strengthen core protocol understanding with targeted multiple-choice inquiries.',
-      actionLabel: 'Start Practice Quiz',
-      action: () => onStartQuizFromTopic('TCP Congestion Control')
-    });
-  }
+  // If no recommendations, array remains empty and UI renders an onboarding zero state
 
   // Weekly study activity data
   const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -110,7 +102,9 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
             <span>Study Time</span>
             <Clock className="w-4 h-4 text-blue-500" />
           </div>
-          <div className="text-2xl font-bold text-slate-900 dark:text-white">{totalHours} hrs</div>
+          <div className="text-2xl font-bold text-slate-900 dark:text-white">
+            {totalStudyMinutes === 0 ? '0 min' : totalStudyMinutes < 60 ? `${totalStudyMinutes} min` : `${totalHours} hrs`}
+          </div>
           <div className="text-xs text-slate-500 dark:text-slate-400">Total productive study sessions</div>
         </div>
 
@@ -119,8 +113,12 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
             <span>Quiz Accuracy</span>
             <Target className="w-4 h-4 text-emerald-500" />
           </div>
-          <div className="text-2xl font-bold text-slate-900 dark:text-white">{accuracy}%</div>
-          <div className="text-xs text-slate-500 dark:text-slate-400">{correct} of {attempted} questions correct</div>
+          <div className="text-2xl font-bold text-slate-900 dark:text-white">
+            {attempted > 0 ? `${accuracy}%` : '—'}
+          </div>
+          <div className="text-xs text-slate-500 dark:text-slate-400">
+            {attempted > 0 ? `${correct} of ${attempted} questions correct` : 'Complete a quiz to see your accuracy'}
+          </div>
         </div>
 
         <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs space-y-2">
@@ -137,8 +135,10 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
             <span>Current Streak</span>
             <Flame className="w-4 h-4 text-amber-500" />
           </div>
-          <div className="text-2xl font-bold text-slate-900 dark:text-white">{learningState.streakDays || 1} Days</div>
-          <div className="text-xs text-amber-600 dark:text-amber-400 font-medium">Keep up daily active recall!</div>
+          <div className="text-2xl font-bold text-slate-900 dark:text-white">{learningState.streakDays || 0} Days</div>
+          <div className="text-xs text-amber-600 dark:text-amber-400 font-medium">
+            {(learningState.streakDays || 0) > 0 ? 'Keep up daily active recall!' : 'Start studying today to build your streak!'}
+          </div>
         </div>
       </div>
 
@@ -151,50 +151,62 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {recommendations.slice(0, 4).map((rec, idx) => (
-            <div
-              key={idx}
-              className={`p-5 rounded-2xl border flex flex-col justify-between space-y-4 ${
-                rec.type === 'review'
-                  ? 'bg-rose-50/30 dark:bg-rose-950/20 border-rose-200 dark:border-rose-900/50'
-                  : rec.type === 'advanced'
-                  ? 'bg-purple-50/30 dark:bg-purple-950/20 border-purple-200 dark:border-purple-900/50'
-                  : 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800'
-              }`}
-            >
-              <div className="space-y-1.5">
-                <span
-                  className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider ${
-                    rec.type === 'review'
-                      ? 'bg-rose-100 dark:bg-rose-900/50 text-rose-700 dark:text-rose-300'
-                      : rec.type === 'advanced'
-                      ? 'bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300'
-                      : 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300'
-                  }`}
-                >
-                  {rec.type.replace('_', ' ')}
-                </span>
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                  {rec.title}
-                </h3>
-                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                  {rec.description}
-                </p>
-              </div>
+        {recommendations.length === 0 ? (
+          <div className="p-8 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-center space-y-2">
+            <Sparkles className="w-7 h-7 text-blue-500 mx-auto opacity-70" />
+            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">
+              No Adaptive Recommendations Yet
+            </h3>
+            <p className="text-xs text-slate-400 max-w-md mx-auto">
+              Complete practice quizzes or flashcard reviews to unlock personalized study recommendations based on your verified recall.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {recommendations.slice(0, 4).map((rec, idx) => (
+              <div
+                key={idx}
+                className={`p-5 rounded-2xl border flex flex-col justify-between space-y-4 ${
+                  rec.type === 'review'
+                    ? 'bg-rose-50/30 dark:bg-rose-950/20 border-rose-200 dark:border-rose-900/50'
+                    : rec.type === 'advanced'
+                    ? 'bg-purple-50/30 dark:bg-purple-950/20 border-purple-200 dark:border-purple-900/50'
+                    : 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800'
+                }`}
+              >
+                <div className="space-y-1.5">
+                  <span
+                    className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider ${
+                      rec.type === 'review'
+                        ? 'bg-rose-100 dark:bg-rose-900/50 text-rose-700 dark:text-rose-300'
+                        : rec.type === 'advanced'
+                        ? 'bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300'
+                        : 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300'
+                    }`}
+                  >
+                    {rec.type.replace('_', ' ')}
+                  </span>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                    {rec.title}
+                  </h3>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                    {rec.description}
+                  </p>
+                </div>
 
-              <div>
-                <button
-                  onClick={rec.action}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
-                >
-                  <span>{rec.actionLabel}</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
+                <div>
+                  <button
+                    onClick={rec.action}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+                  >
+                    <span>{rec.actionLabel}</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* 3. Weekly Activity Chart */}
@@ -216,7 +228,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
         <div className="pt-4 flex items-end justify-between gap-3 h-48 px-2 sm:px-6">
           {daysOfWeek.map((day) => {
             const minutes = learningState.weeklyActivity?.[day] || 0;
-            const heightPercent = Math.max(10, Math.round((minutes / maxWeeklyMinutes) * 100));
+            const heightPercent = minutes > 0 ? Math.max(8, Math.round((minutes / maxWeeklyMinutes) * 100)) : 0;
 
             return (
               <div key={day} className="flex-1 flex flex-col items-center gap-2 group">
@@ -253,49 +265,61 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
         </div>
 
         <div className="space-y-3">
-          {Object.entries(learningState.topicPerformance || {}).map(([topic, perf]) => {
-            const acc = perf.attempted > 0 ? Math.round((perf.correct / perf.attempted) * 100) : 0;
-            return (
-              <div
-                key={topic}
-                className="p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
-              >
-                <div>
-                  <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">
-                    {topic}
-                  </h4>
-                  <p className="text-xs text-slate-400">
-                    {perf.correct}/{perf.attempted} questions solved ({acc}% accuracy) • Last studied {new Date(perf.lastStudied).toLocaleDateString()}
-                  </p>
-                </div>
+          {Object.keys(learningState.topicPerformance || {}).length === 0 ? (
+            <div className="p-8 text-center rounded-xl border border-dashed border-slate-200 dark:border-slate-800 space-y-2">
+              <GraduationCap className="w-8 h-8 text-slate-300 dark:text-slate-600 mx-auto" />
+              <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                No Topic Mastery Recorded Yet
+              </h4>
+              <p className="text-xs text-slate-400 max-w-sm mx-auto">
+                Topic-level mastery updates automatically as you complete quizzes and review flashcards.
+              </p>
+            </div>
+          ) : (
+            Object.entries(learningState.topicPerformance || {}).map(([topic, perf]) => {
+              const acc = perf.attempted > 0 ? Math.round((perf.correct / perf.attempted) * 100) : 0;
+              return (
+                <div
+                  key={topic}
+                  className="p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                >
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                      {topic}
+                    </h4>
+                    <p className="text-xs text-slate-400">
+                      {perf.correct}/{perf.attempted} questions solved ({acc}% accuracy) • Last studied {new Date(perf.lastStudied).toLocaleDateString()}
+                    </p>
+                  </div>
 
-                <div className="flex items-center gap-3">
-                  <span
-                    className={`text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider ${
-                      perf.masteryStatus === 'strong'
-                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={`text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider ${
+                        perf.masteryStatus === 'strong'
+                          ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
+                          : perf.masteryStatus === 'learning'
+                          ? 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300'
+                          : 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300'
+                      }`}
+                    >
+                      {perf.masteryStatus === 'strong'
+                        ? 'Strong'
                         : perf.masteryStatus === 'learning'
-                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300'
-                        : 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300'
-                    }`}
-                  >
-                    {perf.masteryStatus === 'strong'
-                      ? 'Strong'
-                      : perf.masteryStatus === 'learning'
-                      ? 'Learning'
-                      : 'Needs Review'}
-                  </span>
+                        ? 'Learning'
+                        : 'Needs Review'}
+                    </span>
 
-                  <button
-                    onClick={() => onStartTutorWithPrompt(`Explain key concepts and edge cases for ${topic}`, 'explain')}
-                    className="p-1.5 text-xs text-blue-600 dark:text-blue-400 hover:underline"
-                  >
-                    Revise
-                  </button>
+                    <button
+                      onClick={() => onStartTutorWithPrompt(`Explain key concepts and edge cases for ${topic}`, 'explain')}
+                      className="p-1.5 text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                    >
+                      Revise
+                    </button>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })
+          )}
         </div>
       </div>
     </div>

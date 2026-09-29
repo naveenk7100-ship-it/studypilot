@@ -38,8 +38,8 @@ export const ExamPrepView: React.FC<ExamPrepViewProps> = ({
   const [showEditModal, setShowEditModal] = useState(false);
 
   // Form State
-  const [examName, setExamName] = useState('Midterm: Distributed Systems & Networks');
-  const [subject, setSubject] = useState('Computer Science');
+  const [examName, setExamName] = useState('');
+  const [subject, setSubject] = useState('');
   const [examDate, setExamDate] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() + 7);
@@ -47,11 +47,10 @@ export const ExamPrepView: React.FC<ExamPrepViewProps> = ({
   });
   const [availableHours, setAvailableHours] = useState<number>(3);
   const [topicsInput, setTopicsInput] = useState(() => {
-    const base = ['OSI & TCP/IP Model', 'Congestion Control', 'Routing Protocols'];
     if (weakTopics.length > 0) {
-      return [...weakTopics, ...base.filter(b => !weakTopics.includes(b))].join(', ');
+      return weakTopics.join(', ');
     }
-    return base.join(', ');
+    return '';
   });
   const [isGenerating, setIsGenerating] = useState(false);
 

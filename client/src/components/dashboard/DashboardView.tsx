@@ -162,16 +162,22 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
           <div className="space-y-1">
             <div className="text-2xl font-bold text-slate-900 dark:text-white">
-              {dueCardsCount > 0 ? `${dueCardsCount} Cards` : 'Completed'}
+              {dueCardsCount} Cards
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              {dueCardsCount > 0 ? 'Due for spaced repetition' : 'All review tasks caught up!'}
+              {dueCardsCount > 0
+                ? 'Due for spaced repetition'
+                : flashcards.length === 0
+                ? 'Review a flashcard deck to start your streak'
+                : 'All review tasks caught up!'}
             </p>
           </div>
           <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
             <div
               className="bg-blue-500 h-full rounded-full transition-all duration-500"
-              style={{ width: dueCardsCount > 0 ? '45%' : '100%' }}
+              style={{
+                width: dueCardsCount > 0 ? `${Math.min(100, Math.round((dueCardsCount / Math.max(1, flashcards.length)) * 100))}%` : '0%'
+              }}
             />
           </div>
         </div>
@@ -184,14 +190,23 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
           <div className="space-y-1">
             <div className="text-2xl font-bold text-slate-900 dark:text-white">
-              {totalHours} hrs
+              {totalStudyMinutes === 0
+                ? '0 min'
+                : totalStudyMinutes < 60
+                ? `${totalStudyMinutes} min`
+                : `${totalHours} hrs`}
             </div>
             <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
-              🔥 {learningState.streakDays || 1}-day learning streak
+              {learningState.streakDays > 0
+                ? `🔥 ${learningState.streakDays}-day learning streak`
+                : '0 days streak'}
             </p>
           </div>
           <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
-            <div className="bg-emerald-500 h-full rounded-full w-[70%]" />
+            <div
+              className="bg-emerald-500 h-full rounded-full transition-all duration-500"
+              style={{ width: totalStudyMinutes > 0 ? `${Math.min(100, Math.round((totalStudyMinutes / 60) * 100))}%` : '0%' }}
+            />
           </div>
         </div>
 
@@ -203,16 +218,18 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
           <div className="space-y-1">
             <div className="text-2xl font-bold text-slate-900 dark:text-white">
-              {overallAccuracy}%
+              {totalQuestions > 0 ? `${overallAccuracy}%` : '—'}
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              {correctQuestions}/{totalQuestions} solved correctly
+              {totalQuestions > 0
+                ? `${correctQuestions}/${totalQuestions} solved correctly`
+                : 'Complete a quiz to see your accuracy'}
             </p>
           </div>
           <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
             <div
-              className="bg-amber-500 h-full rounded-full"
-              style={{ width: `${overallAccuracy}%` }}
+              className="bg-amber-500 h-full rounded-full transition-all duration-500"
+              style={{ width: totalQuestions > 0 ? `${overallAccuracy}%` : '0%' }}
             />
           </div>
         </div>
@@ -225,17 +242,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
           <div className="space-y-1">
             <div className="text-2xl font-bold text-slate-900 dark:text-white">
-              {topicsNeedingReview.length || 1}
+              {topicsNeedingReview.length}
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-              {topicsNeedingReview[0] || 'Routing Protocols'}
+              {topicsNeedingReview.length > 0
+                ? topicsNeedingReview[0]
+                : 'No topics needing review'}
             </p>
           </div>
           <button
-            onClick={() => onNavigate('progress')}
+            onClick={() => onNavigate(topicsNeedingReview.length > 0 ? 'progress' : 'quizzes')}
             className="text-xs text-rose-600 dark:text-rose-400 font-semibold hover:underline flex items-center gap-1"
           >
-            <span>View adaptive plan</span>
+            <span>{topicsNeedingReview.length > 0 ? 'View adaptive plan' : 'Take a quiz'}</span>
             <ArrowRight className="w-3 h-3" />
           </button>
         </div>
@@ -251,7 +270,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <button
               key={i}
               onClick={action.action}
-              className="flex flex-col items-start p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-xs transition-all text-left group"
+              className="flex flex-col items-start p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-xs transition-all text-left group cursor-pointer"
             >
               <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-800 group-hover:scale-105 transition-transform mb-2">
                 {action.icon}
@@ -275,95 +294,95 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <h2 className="text-base font-bold text-slate-900 dark:text-white">
               Recent Activity
             </h2>
-            <button
-              onClick={() => onNavigate('tutor')}
-              className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline"
-            >
-              View All History
-            </button>
+            {(documents.length > 0 || quizResults.length > 0) && (
+              <button
+                onClick={() => onNavigate('tutor')}
+                className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+              >
+                View History
+              </button>
+            )}
           </div>
 
           <div className="space-y-3">
-            {/* Recent Question / Explanation */}
-            <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 flex items-start justify-between gap-4">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300">
-                    EXPLAINED TOPIC
-                  </span>
-                  <span className="text-xs text-slate-400">2 hours ago</span>
+            {documents.length === 0 && quizResults.length === 0 ? (
+              <div className="p-8 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-center space-y-3">
+                <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center mx-auto text-blue-500">
+                  <BookOpen className="w-6 h-6" />
                 </div>
-                <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-                  TCP Congestion Control Step-by-Step
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1">
-                  Slow Start, Congestion Avoidance, AIMD principle, Fast Retransmit
-                </p>
-              </div>
-              <button
-                onClick={() => onStartTutorWithPrompt('Explain TCP congestion control', 'explain')}
-                className="p-2 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0"
-                title="Review explanation"
-              >
-                <RotateCcw className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Recent Document */}
-            {documents.slice(0, 1).map((doc) => (
-              <div
-                key={doc.id}
-                className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-4"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 shrink-0">
-                    <FileText className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100 line-clamp-1">
-                      {doc.fileName}
-                    </h3>
-                    <p className="text-xs text-slate-400">
-                      {doc.pageCount} pages • {doc.concepts.length} key concepts extracted
-                    </p>
-                  </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">No study activity yet</h3>
+                  <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+                    Start your first session to build your progress. Ask the AI Tutor, upload study notes, or generate a quiz!
+                  </p>
                 </div>
                 <button
-                  onClick={() => onNavigate('materials')}
-                  className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+                  onClick={() => onStartTutorWithPrompt('Explain TCP congestion control', 'explain')}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
                 >
-                  Open
+                  <span>Start Your First Session</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
-            ))}
+            ) : (
+              <>
+                {/* User Documents */}
+                {documents.slice(0, 2).map((doc) => (
+                  <div
+                    key={doc.id}
+                    className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-4"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="p-2.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 shrink-0">
+                        <FileText className="w-5 h-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">
+                          {doc.fileName}
+                        </h3>
+                        <p className="text-xs text-slate-400">
+                          {doc.pageCount} pages • {doc.concepts.length} key concepts extracted
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => onNavigate('materials')}
+                      className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 shrink-0"
+                    >
+                      Open
+                    </button>
+                  </div>
+                ))}
 
-            {/* Recent Quiz Performance */}
-            {quizResults.slice(0, 1).map((res) => (
-              <div
-                key={res.id}
-                className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-4"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 shrink-0">
-                    <GraduationCap className="w-5 h-5" />
+                {/* User Quiz Performance */}
+                {quizResults.slice(0, 2).map((res) => (
+                  <div
+                    key={res.id}
+                    className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-4"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 shrink-0">
+                        <GraduationCap className="w-5 h-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">
+                          Quiz: {res.topic}
+                        </h3>
+                        <p className="text-xs text-slate-400">
+                          Score: {res.score}/{res.totalQuestions} ({res.accuracy}%)
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => onNavigate('quizzes')}
+                      className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 shrink-0"
+                    >
+                      Review
+                    </button>
                   </div>
-                  <div>
-                    <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-                      Quiz: {res.topic}
-                    </h3>
-                    <p className="text-xs text-slate-400">
-                      Score: {res.score}/{res.totalQuestions} ({res.accuracy}%) • Completed yesterday
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => onNavigate('quizzes')}
-                  className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
-                >
-                  Review
-                </button>
-              </div>
-            ))}
+                ))}
+              </>
+            )}
           </div>
         </div>
 
@@ -383,43 +402,63 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
 
           <div className="space-y-3">
-            {examPlans.slice(0, 2).map((plan) => (
-              <div
-                key={plan.id}
-                className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 space-y-3"
-              >
-                <div className="flex items-start justify-between">
-                  <div>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300">
-                      {plan.daysRemaining} DAYS REMAINING
-                    </span>
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-white mt-1.5">
-                      {plan.examName}
-                    </h3>
-                    <p className="text-xs text-slate-400">{plan.subject}</p>
-                  </div>
+            {examPlans.length === 0 ? (
+              <div className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-center space-y-3">
+                <div className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/40 flex items-center justify-center mx-auto text-rose-500">
+                  <CalendarDays className="w-5 h-5" />
                 </div>
-
-                <div className="space-y-1.5 pt-1">
-                  <div className="text-xs font-semibold text-slate-600 dark:text-slate-300">
-                    Next Action:
-                  </div>
-                  {plan.dailyPlan[1]?.tasks.slice(0, 1).map((t, idx) => (
-                    <div key={idx} className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-blue-500 shrink-0" />
-                      <span className="line-clamp-1">{t.text}</span>
-                    </div>
-                  ))}
+                <div>
+                  <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">No upcoming exam plans</h4>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    Set your exam date and syllabus to generate an adaptive revision timeline.
+                  </p>
                 </div>
-
                 <button
                   onClick={() => onNavigate('exam_prep')}
-                  className="w-full text-center text-xs font-semibold py-2 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 transition-colors"
+                  className="w-full py-2 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 hover:bg-rose-100 text-xs font-semibold transition-colors cursor-pointer"
                 >
-                  Open Study Roadmap
+                  Build Exam Roadmap
                 </button>
               </div>
-            ))}
+            ) : (
+              examPlans.slice(0, 2).map((plan) => (
+                <div
+                  key={plan.id}
+                  className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 space-y-3"
+                >
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300">
+                        {plan.daysRemaining} DAYS REMAINING
+                      </span>
+                      <h3 className="text-sm font-bold text-slate-900 dark:text-white mt-1.5">
+                        {plan.examName}
+                      </h3>
+                      <p className="text-xs text-slate-400">{plan.subject}</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5 pt-1">
+                    <div className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                      Next Action:
+                    </div>
+                    {plan.dailyPlan[0]?.tasks.slice(0, 1).map((t, idx) => (
+                      <div key={idx} className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                        <span className="line-clamp-1">{t.text}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <button
+                    onClick={() => onNavigate('exam_prep')}
+                    className="w-full text-center text-xs font-semibold py-2 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 transition-colors cursor-pointer"
+                  >
+                    Open Study Roadmap
+                  </button>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>

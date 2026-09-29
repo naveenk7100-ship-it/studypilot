@@ -42,7 +42,7 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
   // Manual create form state
   const [newFront, setNewFront] = useState('');
   const [newBack, setNewBack] = useState('');
-  const [newTopic, setNewTopic] = useState('Computer Science');
+  const [newTopic, setNewTopic] = useState('');
 
   // AI generator form state
   const [aiTopic, setAiTopic] = useState('');

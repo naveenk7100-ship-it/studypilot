@@ -29,8 +29,8 @@ interface QuizViewProps {
 export const QuizView: React.FC<QuizViewProps> = ({ documents, onStartTutorReview }) => {
   // Quiz Generator Modal State
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [targetTopic, setTargetTopic] = useState('TCP Congestion Control');
-  const [targetSubject, setTargetSubject] = useState('Computer Networks');
+  const [targetTopic, setTargetTopic] = useState('');
+  const [targetSubject, setTargetSubject] = useState('');
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
   const [questionCount, setQuestionCount] = useState<number>(5);
   const [selectedDocId, setSelectedDocId] = useState<string>('');
