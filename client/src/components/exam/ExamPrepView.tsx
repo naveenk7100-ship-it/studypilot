@@ -479,7 +479,7 @@ export const ExamPrepView: React.FC<ExamPrepViewProps> = ({
               rows={3}
               value={topicsInput}
               onChange={(e) => setTopicsInput(e.target.value)}
-              placeholder="OSI Model, TCP/IP, Congestion Control, Routing Protocols"
+              placeholder="e.g. Cell Structure, Photosynthesis, Genetics or Data Structures, Algorithms"
               className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white outline-hidden focus:border-blue-500"
               required
             />

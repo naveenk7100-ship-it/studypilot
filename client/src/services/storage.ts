@@ -20,6 +20,54 @@ const STORAGE_KEYS = {
   THEME: 'studypilot_theme'
 };
 
+const STORAGE_VERSION_KEY = 'studypilot_schema_version';
+const CURRENT_SCHEMA_VERSION = 'v2_zero_state';
+
+/**
+ * Self-healing zero-state migration.
+ * Automatically runs immediately on module load in the browser.
+ * Purges legacy contaminated mock/seeded data (e.g. 3.8 hrs, 21/29 questions, Routing Protocols)
+ * to guarantee that any new or returning browser arrives at an authentic 0 state.
+ */
+function purgeLegacySeededData() {
+  if (typeof window === 'undefined' || !window.localStorage) return;
+  try {
+    const version = localStorage.getItem(STORAGE_VERSION_KEY);
+    const existingState = localStorage.getItem(STORAGE_KEYS.LEARNING_STATE);
+    const existingFlashcards = localStorage.getItem(STORAGE_KEYS.FLASHCARDS);
+    const existingQuizResults = localStorage.getItem(STORAGE_KEYS.QUIZ_RESULTS);
+    const existingPlans = localStorage.getItem(STORAGE_KEYS.EXAM_PLANS);
+
+    const hasLegacyMarkers = Boolean(
+      (existingState && (
+        existingState.includes('Routing Protocols') ||
+        existingState.includes('215') ||
+        existingState.includes('228') ||
+        existingState.includes('TCP Congestion')
+      )) ||
+      (existingFlashcards && (existingFlashcards.includes('fc-1') || existingFlashcards.includes('fc-2') || existingFlashcards.includes('fc-3'))) ||
+      (existingQuizResults && existingQuizResults.includes('res-demo-1')) ||
+      (existingPlans && existingPlans.includes('plan-demo-1'))
+    );
+
+    if (version !== CURRENT_SCHEMA_VERSION || hasLegacyMarkers) {
+      localStorage.removeItem(STORAGE_KEYS.CONVERSATIONS);
+      localStorage.removeItem(STORAGE_KEYS.CURRENT_CONV_ID);
+      localStorage.removeItem(STORAGE_KEYS.DOCUMENTS);
+      localStorage.removeItem(STORAGE_KEYS.FLASHCARDS);
+      localStorage.removeItem(STORAGE_KEYS.QUIZ_RESULTS);
+      localStorage.removeItem(STORAGE_KEYS.EXAM_PLANS);
+      localStorage.removeItem(STORAGE_KEYS.LEARNING_STATE);
+      localStorage.removeItem(STORAGE_KEYS.SAVED_NOTES);
+      localStorage.setItem(STORAGE_VERSION_KEY, CURRENT_SCHEMA_VERSION);
+    }
+  } catch (e) {
+    console.warn('Storage purge warning:', e);
+  }
+}
+
+purgeLegacySeededData();
+
 // Clean Zero State Initialization (No fabricated student history)
 const INITIAL_ZERO_STATE: {
   conversations: Conversation[];
@@ -246,6 +294,9 @@ export const StorageService = {
     } else {
       state.weeklyActivity[dayName] = minutes;
     }
+    if (state.streakDays === 0) {
+      state.streakDays = 1;
+    }
     state.lastActiveDate = new Date().toISOString();
     this.saveLearningState(state);
   },
@@ -255,6 +306,17 @@ export const StorageService = {
     state.questionsAttempted += result.totalQuestions;
     state.questionsCorrect += result.score;
     state.totalStudyMinutes += Math.round(result.timeSpentSeconds / 60) || 5;
+
+    const dayName = new Date().toLocaleDateString('en-US', { weekday: 'short' });
+    const quizMinutes = Math.round(result.timeSpentSeconds / 60) || 5;
+    if (state.weeklyActivity[dayName] !== undefined) {
+      state.weeklyActivity[dayName] += quizMinutes;
+    } else {
+      state.weeklyActivity[dayName] = quizMinutes;
+    }
+    if (state.streakDays === 0) {
+      state.streakDays = 1;
+    }
 
     const topic = result.topic || 'General';
     const current = state.topicPerformance[topic] || {
@@ -321,6 +383,7 @@ export const StorageService = {
 
   deleteAllStudyData() {
     Object.values(STORAGE_KEYS).forEach(k => localStorage.removeItem(k));
+    localStorage.setItem(STORAGE_VERSION_KEY, CURRENT_SCHEMA_VERSION);
   },
 
   exportAllData(): string {

@@ -83,7 +83,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       title: 'Explain Topic',
       desc: 'Step-by-step breakdown',
       icon: <BookOpen className="w-5 h-5 text-emerald-500" />,
-      action: () => onStartTutorWithPrompt('Explain TCP congestion control', 'explain')
+      action: () => onStartTutorWithPrompt('', 'explain')
     },
     {
       title: 'Summarize Notes',
@@ -317,7 +317,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   </p>
                 </div>
                 <button
-                  onClick={() => onStartTutorWithPrompt('Explain TCP congestion control', 'explain')}
+                  onClick={() => onStartTutorWithPrompt('', 'explain')}
                   className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
                 >
                   <span>Start Your First Session</span>

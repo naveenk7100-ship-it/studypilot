@@ -24,9 +24,10 @@ import { Modal } from '../common/Modal';
 interface QuizViewProps {
   documents: ProcessedDocument[];
   onStartTutorReview: (topic: string) => void;
+  onQuizCompleted?: (result: QuizResult) => void;
 }
 
-export const QuizView: React.FC<QuizViewProps> = ({ documents, onStartTutorReview }) => {
+export const QuizView: React.FC<QuizViewProps> = ({ documents, onStartTutorReview, onQuizCompleted }) => {
   // Quiz Generator Modal State
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [targetTopic, setTargetTopic] = useState('');
@@ -138,6 +139,7 @@ export const QuizView: React.FC<QuizViewProps> = ({ documents, onStartTutorRevie
     setPastResults(StorageService.getQuizResults());
     setCompletedResult(result);
     setActiveQuiz(null);
+    onQuizCompleted?.(result);
 
     // Confetti if high score!
     if (accuracy >= 80) {

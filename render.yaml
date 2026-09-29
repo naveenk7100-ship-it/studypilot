@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: studypilot-api
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: AI_PROVIDER
+        value: gemini
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-1.5-flash
+      - key: FRONTEND_URL
+        value: https://naveenk7100-ship-it.github.io

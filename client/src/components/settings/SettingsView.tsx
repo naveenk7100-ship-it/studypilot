@@ -16,24 +16,28 @@ import {
 } from 'lucide-react';
 import { ServerStatus } from '../../types';
 import { StorageService } from '../../services/storage';
-import { fetchServerStatus } from '../../services/api';
+import { fetchServerStatus, getBackendUrl, setBackendUrl } from '../../services/api';
 
 interface SettingsViewProps {
   serverStatus: ServerStatus | null;
   onRefreshStatus: () => void;
   darkMode: boolean;
   onToggleDarkMode: () => void;
+  onDataReset?: () => void;
 }
 
 export const SettingsView: React.FC<SettingsViewProps> = ({
   serverStatus,
   onRefreshStatus,
   darkMode,
-  onToggleDarkMode
+  onToggleDarkMode,
+  onDataReset
 }) => {
   const [exportMessage, setExportMessage] = useState<string | null>(null);
   const [isTestingConnection, setIsTestingConnection] = useState(false);
   const [connectionLatency, setConnectionLatency] = useState<number | null>(null);
+  const [customBackendUrl, setCustomBackendUrl] = useState<string>(() => getBackendUrl());
+  const [urlSavedFeedback, setUrlSavedFeedback] = useState<string | null>(null);
 
   const importFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -84,10 +88,29 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   };
 
   const handleDeleteAllData = () => {
-    if (window.confirm('WARNING: Are you sure you want to delete ALL study data, flashcards, quiz history, and plans?')) {
+    if (window.confirm('WARNING: Are you sure you want to delete ALL study data, flashcards, quiz history, and plans? This permanently resets the dashboard to the clean zero state.')) {
       StorageService.deleteAllStudyData();
+      if (onDataReset) {
+        onDataReset();
+      }
       window.location.reload();
     }
+  };
+
+  const handleSaveBackendUrl = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBackendUrl(customBackendUrl);
+    setUrlSavedFeedback('Backend endpoint saved! Testing connection...');
+    await handleTestConnection();
+    setTimeout(() => setUrlSavedFeedback(null), 3500);
+  };
+
+  const handleResetBackendUrl = async () => {
+    setCustomBackendUrl('');
+    setBackendUrl('');
+    setUrlSavedFeedback('Reset to default. Testing connection...');
+    await handleTestConnection();
+    setTimeout(() => setUrlSavedFeedback(null), 3500);
   };
 
   const handleTestConnection = async () => {
@@ -184,13 +207,51 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             {serverStatus?.message}
           </p>
 
+          {/* Backend URL Configuration Form */}
+          <form onSubmit={handleSaveBackendUrl} className="pt-3 border-t border-slate-200/60 dark:border-slate-700/60 space-y-2">
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase">
+              Connected Backend URL (Optional)
+            </label>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <input
+                type="url"
+                value={customBackendUrl}
+                onChange={(e) => setCustomBackendUrl(e.target.value)}
+                placeholder="e.g. https://studypilot-api.onrender.com (or leave empty for Demo Mode)"
+                className="flex-1 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-800 dark:text-slate-200 placeholder:text-slate-400 outline-hidden focus:border-blue-500"
+              />
+              <div className="flex gap-2 shrink-0">
+                <button
+                  type="submit"
+                  className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+                >
+                  Save & Connect
+                </button>
+                {customBackendUrl && (
+                  <button
+                    type="button"
+                    onClick={handleResetBackendUrl}
+                    className="px-3 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
+                  >
+                    Reset
+                  </button>
+                )}
+              </div>
+            </div>
+            {urlSavedFeedback && (
+              <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+                {urlSavedFeedback}
+              </p>
+            )}
+          </form>
+
           <div className="pt-2 border-t border-slate-200/60 dark:border-slate-700/60 text-xs text-slate-400 space-y-1">
             <div className="font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
               <ShieldCheck className="w-3.5 h-3.5 text-blue-500" />
               <span>Production Security Architecture</span>
             </div>
             <p>
-              API keys are <strong>never</strong> bundled or included in client code. To connect live models, configure your provider API credentials in the server's <code className="font-mono">.env</code> file (see <code className="font-mono">.env.example</code>).
+              API keys are <strong>never</strong> bundled or included in client code. The browser communicates exclusively with your secure backend, where API credentials live in private environment variables.
             </p>
           </div>
         </div>

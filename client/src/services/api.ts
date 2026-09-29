@@ -18,20 +18,64 @@ import {
   processDocumentInBrowser
 } from './demoEngine';
 
-const API_BASE = '/api';
+export function getBackendUrl(): string {
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem('studypilot_backend_url');
+    if (saved && saved.trim()) return saved.trim().replace(/\/+$/, '');
+  }
+  if (import.meta.env.VITE_BACKEND_URL) {
+    return (import.meta.env.VITE_BACKEND_URL as string).trim().replace(/\/+$/, '');
+  }
+  return '';
+}
+
+export function setBackendUrl(url: string) {
+  if (typeof window !== 'undefined') {
+    if (!url || !url.trim()) {
+      localStorage.removeItem('studypilot_backend_url');
+    } else {
+      localStorage.setItem('studypilot_backend_url', url.trim().replace(/\/+$/, ''));
+    }
+  }
+}
+
+export function getApiBase(): string {
+  const backend = getBackendUrl();
+  if (backend) {
+    return backend.endsWith('/api') ? backend : `${backend}/api`;
+  }
+  return '/api';
+}
+
+export function shouldUseClientFallback(): boolean {
+  return isStaticDeployment() && !getBackendUrl();
+}
 
 export async function fetchServerStatus(): Promise<ServerStatus> {
-  // If hosted on GitHub Pages or static host, immediately return honest Demo Mode
-  if (isStaticDeployment()) {
+  // If hosted on GitHub Pages and no external backend configured, return honest Demo Mode
+  if (shouldUseClientFallback()) {
     return DEMO_SERVER_STATUS;
   }
 
+  const endpoint = `${getApiBase()}/status`;
+
   try {
-    const res = await fetch(`${API_BASE}/status`);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 6000);
+    const res = await fetch(endpoint, { signal: controller.signal });
+    clearTimeout(timeoutId);
+
     if (!res.ok) {
       return DEMO_SERVER_STATUS;
     }
-    return await res.json();
+    const data = await res.json();
+    return {
+      status: data.status || 'ok',
+      provider: data.provider || 'demo',
+      model: data.model || 'studypilot-curriculum-v1',
+      isLive: Boolean(data.isLive),
+      message: data.message || (data.isLive ? 'Connected to live AI provider.' : 'Operating in Demo Mode.')
+    };
   } catch {
     return DEMO_SERVER_STATUS;
   }
@@ -68,8 +112,8 @@ export async function sendChatMessageStream({
   onDone,
   onError
 }: ChatStreamParams) {
-  // If on GitHub Pages or static host, execute pure client-side demo streaming
-  if (isStaticDeployment()) {
+  // If no external backend configured on static host, execute client-side demo streaming
+  if (shouldUseClientFallback()) {
     try {
       await streamDemoChat(
         { message, mode, difficulty, documentContext, studentContext },
@@ -84,7 +128,7 @@ export async function sendChatMessageStream({
   }
 
   try {
-    const res = await fetch(`${API_BASE}/chat`, {
+    const res = await fetch(`${getApiBase()}/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -168,12 +212,12 @@ export async function fetchExplanation(
   difficulty: DifficultyLevel = 'intermediate',
   studentContext?: StudentContextParams
 ) {
-  if (isStaticDeployment()) {
+  if (shouldUseClientFallback()) {
     return generateDemoExplanation(topic, difficulty, studentContext);
   }
 
   try {
-    const res = await fetch(`${API_BASE}/explain`, {
+    const res = await fetch(`${getApiBase()}/explain`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ topic, difficulty, studentContext })
@@ -188,7 +232,7 @@ export async function fetchExplanation(
 }
 
 export async function uploadDocument(file: File): Promise<ProcessedDocument> {
-  if (isStaticDeployment()) {
+  if (shouldUseClientFallback()) {
     return processDocumentInBrowser(file);
   }
 
@@ -196,7 +240,7 @@ export async function uploadDocument(file: File): Promise<ProcessedDocument> {
     const formData = new FormData();
     formData.append('file', file);
 
-    const res = await fetch(`${API_BASE}/materials/upload`, {
+    const res = await fetch(`${getApiBase()}/materials/upload`, {
       method: 'POST',
       body: formData
     });
@@ -228,12 +272,12 @@ export async function generateQuizAPI({
   count?: number;
   documentContext?: any;
 }): Promise<{ questions: QuizQuestion[]; id: string }> {
-  if (isStaticDeployment()) {
+  if (shouldUseClientFallback()) {
     return generateDemoQuiz(topic, subject, difficulty, count);
   }
 
   try {
-    const res = await fetch(`${API_BASE}/quiz/generate`, {
+    const res = await fetch(`${getApiBase()}/quiz/generate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ topic, subject, difficulty, count, documentContext })
@@ -258,12 +302,12 @@ export async function generateFlashcardsAPI({
   count?: number;
   documentContext?: any;
 }): Promise<Flashcard[]> {
-  if (isStaticDeployment()) {
+  if (shouldUseClientFallback()) {
     return generateDemoFlashcards(topic, count);
   }
 
   try {
-    const res = await fetch(`${API_BASE}/flashcards/generate`, {
+    const res = await fetch(`${getApiBase()}/flashcards/generate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ topic, count, documentContext })
@@ -299,12 +343,12 @@ export async function generateExamPlanAPI(params: {
   topics: string[];
   weakTopics?: string[];
 }): Promise<ExamPlan> {
-  if (isStaticDeployment()) {
+  if (shouldUseClientFallback()) {
     return generateDemoExamPlan(params);
   }
 
   try {
-    const res = await fetch(`${API_BASE}/exam/generate`, {
+    const res = await fetch(`${getApiBase()}/exam/generate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(params)

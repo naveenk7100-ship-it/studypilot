@@ -650,8 +650,8 @@ export async function getVerifiedAIProvider() {
     return activeProviderInstance;
   }
 
-  // 1. Gemini
-  if (chosen === 'gemini' && geminiKey) {
+  // 1. Gemini (preferred provider)
+  if (geminiKey && (chosen === 'gemini' || !chosen)) {
     const gemini = new GeminiProvider(geminiKey, process.env.GEMINI_MODEL || 'gemini-1.5-flash');
     const isLive = await gemini.verifyConnection();
     if (isLive) {

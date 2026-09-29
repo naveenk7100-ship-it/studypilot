@@ -251,7 +251,9 @@ export function App() {
               documents={documents}
               onFlashcardUpdated={(card) => {
                 StorageService.updateFlashcard(card);
+                StorageService.recordStudyTime(1);
                 setFlashcards(StorageService.getFlashcards());
+                setLearningState(StorageService.getLearningState());
               }}
               onFlashcardsAdded={(cards) => {
                 StorageService.addFlashcards(cards);
@@ -269,6 +271,10 @@ export function App() {
               documents={documents}
               onStartTutorReview={(topicPrompt) => {
                 handleStartTutorWithPrompt(topicPrompt, 'explain');
+              }}
+              onQuizCompleted={() => {
+                setQuizResults(StorageService.getQuizResults());
+                setLearningState(StorageService.getLearningState());
               }}
             />
           )}
@@ -313,6 +319,13 @@ export function App() {
               onRefreshStatus={loadStatus}
               darkMode={darkMode}
               onToggleDarkMode={() => setDarkMode(prev => !prev)}
+              onDataReset={() => {
+                setDocuments([]);
+                setFlashcards([]);
+                setQuizResults([]);
+                setExamPlans([]);
+                setLearningState(StorageService.getLearningState());
+              }}
             />
           )}
 
