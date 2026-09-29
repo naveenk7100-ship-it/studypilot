@@ -28,6 +28,7 @@ app.use('/api', apiRouter);
 
 // Serve frontend static build in production
 const clientDistPath = path.resolve(__dirname, '../client/dist');
+app.use('/studypilot', express.static(clientDistPath));
 app.use(express.static(clientDistPath));
 
 // Fallback to client index.html for SPA routing
